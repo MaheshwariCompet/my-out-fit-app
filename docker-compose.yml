@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: myoutfit-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=MyOutFit API
+      - API_V1_STR=/api/v1
+      - SUPABASE_URL=https://mock.supabase.co
+      - SUPABASE_KEY=mock-anon-key
+      - SUPABASE_SERVICE_ROLE_KEY=mock-service-role-key
+      - SUPABASE_JWT_SECRET=super-secret-jwt-key-min-32-chars-long
+      - RATE_LIMIT_PER_MINUTE=120
+      - ENVIRONMENT=development
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: myoutfit-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+      - VITE_SUPABASE_URL=https://mock.supabase.co
+      - VITE_SUPABASE_ANON_KEY=mock-anon-key
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
