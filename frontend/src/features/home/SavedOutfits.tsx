@@ -1,60 +1,104 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Bookmark, Sparkles, Check, Trash2 } from 'lucide-react';
+import { useWardrobe } from '../../context/WardrobeContext';
 
 export default function SavedOutfits() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('All');
+  const { outfits, toggleSaveOutfit, selectOutfitForTryOn, markWornToday, hasWornToday } = useWardrobe();
 
-  const outfits = [
-    { id: '1', title: 'Minimal Tailoring', desc: 'Coat + Trousers + Knit', synergy: 98, img: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=400&q=80' },
-    { id: '2', title: 'Parisian Weekend', desc: 'Trench + Denim + Loafers', synergy: 94, img: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=400&q=80' },
-    { id: '3', title: 'Boardroom Wool', desc: 'Blazer + Pleated Trousers', synergy: 96, img: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=400&q=80' }
-  ];
+  const savedList = outfits.filter(o => o.is_saved);
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto pb-12">
-      <div className="flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-xl border border-[#E8E2D9] dark:border-[#2A313D]">
-          <ArrowLeft size={18} />
-        </button>
-        <div>
-          <span className="text-[10px] font-semibold text-[#C4623A] uppercase tracking-wider">16 Looks Saved</span>
-          <h1 className="font-serif text-2xl font-bold">Saved Outfits</h1>
-        </div>
-        <Button size="sm" onClick={() => navigate('/planner/create-look')}>+ Create</Button>
-      </div>
-
-      <div className="flex gap-2">
-        {['All', 'Autumn Workwear', 'Weekend Casual'].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-1.5 rounded-full text-xs transition-all ${
-              activeTab === tab ? 'bg-[#1F2F4F] text-white font-semibold' : 'bg-neutral-100 dark:bg-neutral-800'
-            }`}
+    <div className="space-y-6 max-w-7xl mx-auto w-full px-2 sm:px-4 pb-12">
+      <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D9] dark:border-[#2A313D]">
+        <div className="flex items-center gap-3">
+          <button 
+            type="button" 
+            onClick={() => navigate(-1)} 
+            className="p-2 rounded-xl border border-[#E8E2D9] dark:border-[#2A313D] hover:bg-neutral-50 dark:hover:bg-neutral-800"
           >
-            {tab}
+            <ArrowLeft size={18} />
           </button>
-        ))}
+          <div>
+            <span className="text-[10px] font-bold text-[#C4623A] uppercase tracking-wider">Saved Capsules</span>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#1F2F4F] dark:text-[#FAF8F5]">
+              Curated Rotations ({savedList.length})
+            </h1>
+          </div>
+        </div>
+
+        <Button variant="outline" size="sm" onClick={() => navigate('/planner/builder')}>
+          + Build New Look
+        </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {outfits.map(o => (
-          <Card key={o.id} interactive onClick={() => navigate(`/outfit/${o.id}`)} className="p-2 space-y-2">
-            <div className="aspect-[3/4] rounded-xl overflow-hidden bg-neutral-100">
-              <img src={o.img} alt={o.title} className="w-full h-full object-cover" />
-            </div>
-            <div className="px-1">
-              <span className="text-[10px] font-semibold text-emerald-600">{o.synergy}% Match</span>
-              <h3 className="font-semibold text-xs truncate mt-0.5">{o.title}</h3>
-              <p className="text-[11px] text-neutral-500">{o.desc}</p>
-            </div>
-          </Card>
-        ))}
-      </div>
+      {savedList.length === 0 ? (
+        <Card className="text-center py-16 space-y-3">
+          <Bookmark size={32} className="mx-auto text-neutral-300" />
+          <p className="text-sm text-neutral-500">No outfits saved yet. Bookmark looks from Home or the Planner to store them here.</p>
+          <Button variant="primary" size="sm" onClick={() => navigate('/planner')}>
+            Go to Planner
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {savedList.map(outfit => (
+            <Card key={outfit.id} className="p-4 space-y-4 rounded-3xl border border-[#E8E2D9] dark:border-[#2A313D] flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-900 relative">
+                  <img 
+                    src={outfit.pieces[0]?.image_url || 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=600&q=80'} 
+                    alt={outfit.title} 
+                    className="w-full h-full object-cover" 
+                  />
+                  <div className="absolute top-3 left-3 bg-[#1F2F4F]/85 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-emerald-300">
+                    {outfit.synergy_score}% Match
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSaveOutfit(outfit.id, true)}
+                    className="absolute top-3 right-3 p-2 rounded-full bg-black/60 text-white hover:bg-red-600 transition-colors"
+                    title="Remove from saved"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-[#C4623A] uppercase tracking-wider">{outfit.occasion}</span>
+                  <h3 className="font-serif text-lg font-bold text-[#1F2F4F] dark:text-[#FAF8F5] truncate mt-0.5">{outfit.title}</h3>
+                  <p className="text-xs text-neutral-500 line-clamp-1">{outfit.pieces.map(p => p.title).join(' • ')}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E8E2D9] dark:border-[#2A313D]">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    selectOutfitForTryOn(outfit);
+                    navigate('/try-on');
+                  }}
+                  className="flex items-center justify-center gap-1.5 text-xs"
+                >
+                  <Sparkles size={14} className="text-[#C4623A]" /> 3D Try-On
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="primary"
+                  onClick={() => markWornToday(outfit.id)}
+                  className="flex items-center justify-center gap-1.5 text-xs"
+                >
+                  <Check size={14} /> Wear Today
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

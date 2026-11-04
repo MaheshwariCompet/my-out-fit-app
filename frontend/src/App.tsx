@@ -65,14 +65,18 @@ import ConnectedCalendars from "./features/profile/ConnectedCalendars";
 // Commerce & Diagnostics
 import CheckoutScreen from "./features/commerce/CheckoutScreen";
 import SystemDiagnostics from "./features/shared/SystemDiagnostics";
+import { WardrobeProvider } from "./context/WardrobeContext";
 
+// In App():
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <MainLayout />
-        </BrowserRouter>
+        <WardrobeProvider>
+          <BrowserRouter>
+            <MainLayout />
+          </BrowserRouter>
+        </WardrobeProvider>
       </AuthProvider>
     </ThemeProvider>
   );
